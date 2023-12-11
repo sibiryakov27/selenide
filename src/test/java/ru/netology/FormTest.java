@@ -1,6 +1,5 @@
 package ru.netology;
 
-import com.codeborne.selenide.ElementsCollection;
 import com.codeborne.selenide.SelenideElement;
 import org.junit.jupiter.api.Test;
 import org.openqa.selenium.Keys;
@@ -18,42 +17,47 @@ public class FormTest {
     public void shouldSubmitTheForm() throws InterruptedException {
         open("http://localhost:9999");
         SelenideElement form = $(".form");
-        ElementsCollection inputs = form.$$(".input__control");
-        inputs.findBy(attribute("placeholder", "Город")).setValue("Казань");
+        form.$("[data-test-id=city] input").setValue("Казань");
 
         LocalDateTime date = LocalDateTime.now().plusDays(4);
-        SelenideElement dateInput = inputs.findBy(attribute("placeholder", "Дата встречи"));
+        SelenideElement dateInput =  form.$("[data-test-id=date] input");
         dateInput.sendKeys(Keys.CONTROL + "A");
         dateInput.sendKeys(Keys.BACK_SPACE);
         dateInput.setValue(date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy")));
 
-        inputs.findBy(attribute("name", "name")).setValue("Иванов Иван");
-        inputs.findBy(attribute("name", "phone")).setValue("+71234567890");
-        form.$(".checkbox__box").click();
+        form.$("[data-test-id=name] input").setValue("Иванов Иван");
+        form.$("[data-test-id=phone] input").setValue("+71234567890");
+        form.$("[data-test-id=agreement]").click();
         form.$(".button").click();
 
-        $(".notification__title").shouldBe(visible, Duration.ofSeconds(15)).shouldHave(exactText("Успешно!"));
+        $(".notification__content")
+                .shouldBe(visible, Duration.ofSeconds(15))
+                .shouldHave(text(date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))));
     }
 
     @Test
     public void shouldSubmitTheFormWithAdditionalElements() throws InterruptedException {
         open("http://localhost:9999");
         SelenideElement form = $(".form");
-        ElementsCollection inputs = form.$$(".input__control");
 
-        inputs.findBy(attribute("placeholder", "Город")).setValue("Ка");
+        form.$("[data-test-id=city] input").setValue("Ка");
         $$(".menu-item__control").findBy(exactText("Казань")).click();
 
-        inputs.findBy(attribute("placeholder", "Дата встречи")).click();
-        $$(".calendar__arrow_direction_right").last().click();
-        $$(".calendar__day").findBy(exactText("5")).click();
+        LocalDateTime date = LocalDateTime.now().plusDays(7);
+        form.$("[data-test-id=date] input").click();
+        if (!date.getMonth().equals(LocalDateTime.now().getMonth())) {
+            $(".calendar__arrow_direction_right[data-step=\"1\"]").click();
+        }
+        $$(".calendar__day").findBy(exactText(String.valueOf(date.getDayOfMonth()))).click();
 
-        inputs.findBy(attribute("name", "name")).setValue("Иванов Иван");
-        inputs.findBy(attribute("name", "phone")).setValue("+71234567890");
-        form.$(".checkbox__box").click();
+        form.$("[data-test-id=name] input").setValue("Иванов Иван");
+        form.$("[data-test-id=phone] input").setValue("+71234567890");
+        form.$("[data-test-id=agreement]").click();
         form.$(".button").click();
 
-        $(".notification__title").shouldBe(visible, Duration.ofSeconds(15)).shouldHave(exactText("Успешно!"));
+        $(".notification__content")
+                .shouldBe(visible, Duration.ofSeconds(15))
+                .shouldHave(text(date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"))));
     }
 
 }
